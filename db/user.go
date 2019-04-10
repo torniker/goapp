@@ -13,15 +13,11 @@ func UserInsert(pg *sqlx.DB, udb schema.User) error {
 			(id,
 			username,
 			password,
-			firs_tname,
-			last_name,
 			created_at)
 		VALUES
 			(:id,
 			:username,
 			:password,
-			:first_name,
-			:last_name,
 			:created_at)`, udb)
 	if err != nil {
 		return err

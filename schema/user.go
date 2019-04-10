@@ -3,7 +3,7 @@ package schema
 import (
 	"time"
 
-	uuid "github.com/satori/go.uuid"
+	"github.com/gofrs/uuid"
 	"github.com/torniker/goapp/model"
 )
 
@@ -19,6 +19,7 @@ func (udb *User) Model() model.User {
 	user := model.User{
 		ID:        udb.ID,
 		Username:  udb.Username,
+		Password:  udb.Password,
 		CreatedAt: udb.CreatedAt,
 	}
 	return user

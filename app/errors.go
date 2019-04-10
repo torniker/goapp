@@ -1,10 +1,7 @@
 package app
 
 import (
-	"encoding/json"
 	"net/http"
-
-	"github.com/torniker/goapp/app/logger"
 )
 
 // ResponseErr describes error response
@@ -18,43 +15,48 @@ func (ctx *Ctx) Error(err error) {
 	var body ResponseErr
 	switch err.(type) {
 	case ErrorBadRequest:
-		ctx.response.WriteHeader(http.StatusBadRequest)
+		ctx.response.SetStatus(http.StatusBadRequest)
 		e := err.(ErrorBadRequest)
 		body = ResponseErr{
 			Code:    e.Code,
 			Message: e.Message,
 		}
 	case ErrorStatusUnauthorized:
-		ctx.response.WriteHeader(http.StatusUnauthorized)
+		ctx.response.SetStatus(http.StatusUnauthorized)
 		e := err.(ErrorStatusUnauthorized)
 		body = ResponseErr{
 			Code:    e.Code,
 			Message: e.Message,
 		}
 	case ErrorStatusNotAllowed:
-		ctx.response.WriteHeader(http.StatusMethodNotAllowed)
+		ctx.response.SetStatus(http.StatusMethodNotAllowed)
 		e := err.(ErrorStatusNotAllowed)
 		body = ResponseErr{
 			Code:    e.Code,
 			Message: e.Message,
 		}
 	case ErrorStatusNotFound:
-		ctx.response.WriteHeader(http.StatusNotFound)
+		ctx.response.SetStatus(http.StatusNotFound)
 		e := err.(ErrorStatusNotFound)
 		body = ResponseErr{
 			Code:    e.Code,
 			Message: e.Message,
 		}
-	default:
-		ctx.response.WriteHeader(http.StatusInternalServerError)
+	case ErrorInternalServerError:
+		ctx.response.SetStatus(http.StatusInternalServerError)
 		e := err.(ErrorInternalServerError)
 		body = ResponseErr{
 			Code:    e.Code,
 			Message: e.Message,
 		}
+	default:
+		ctx.response.SetStatus(http.StatusInternalServerError)
+		body = ResponseErr{
+			Code:    99,
+			Message: err.Error(),
+		}
 	}
-	logger.ErrorWithCaller(logger.Caller(), err.Error())
-	json.NewEncoder(ctx.response).Encode(body)
+	ctx.response.Write(body)
 }
 
 // NotFound response 404
@@ -62,6 +64,15 @@ func (ctx *Ctx) NotFound() error {
 	e := ErrorStatusNotFound{
 		Code:    4,
 		Message: "not found",
+	}
+	return e
+}
+
+// Unauthorized response 401
+func (ctx *Ctx) Unauthorized() error {
+	e := ErrorStatusUnauthorized{
+		Code:    1,
+		Message: "unauthorizes",
 	}
 	return e
 }

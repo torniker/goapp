@@ -3,7 +3,7 @@ package model
 import (
 	"time"
 
-	uuid "github.com/satori/go.uuid"
+	"github.com/gofrs/uuid"
 )
 
 // User is struct for moving user data between micro-services and frontend

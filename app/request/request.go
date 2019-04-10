@@ -24,6 +24,7 @@ const (
 type Request interface {
 	Type() int
 	Method() string
+	MethodCode() int
 	Body() io.ReadCloser
 	URL() *url.URL
 }
@@ -48,6 +49,21 @@ func (h *HTTP) Type() int {
 // Method returns method
 func (h *HTTP) Method() string {
 	return h.req.Method
+}
+
+// MethodCode returns method
+func (h *HTTP) MethodCode() int {
+	switch h.req.Method {
+	case "GET":
+		return GET
+	case "POST":
+		return POST
+	case "PUT":
+		return PUT
+	case "DELETE":
+		return DELETE
+	}
+	return 0
 }
 
 // Body returns request body

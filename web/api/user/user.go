@@ -12,9 +12,22 @@ import (
 )
 
 func Handler(c *app.Ctx, nextRoute string) error {
-	if c.Method() == "POST" {
-		return handleInsert(c, nextRoute)
-	}
+	// if request method is POST call handleInsert
+	c.POST(handleInsert)
+	// if request method is GET call handleByID
+	c.GET(handleByID)
+	// else call handleElse
+	c.ELSE(handleElse)
+	// Do the logic built above
+	c.Do()
+	return nil
+}
+
+func handleElse(c *app.Ctx, nextRoute string) error {
+	return c.JSON([]string{})
+}
+
+func handleByID(c *app.Ctx, nextRoute string) error {
 	userID, err := uuid.FromString(nextRoute)
 	if err != nil {
 		logger.Warn(err)

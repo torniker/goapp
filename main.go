@@ -4,10 +4,11 @@ import (
 	"github.com/torniker/goapp/app"
 	"github.com/torniker/goapp/app/logger"
 	"github.com/torniker/goapp/should"
+	"github.com/torniker/goapp/web"
 )
 
 func main() {
-	a, err := app.New(home)
+	a, err := app.New(web.Handler)
 	if err != nil {
 		panic(err)
 	}
@@ -29,6 +30,5 @@ func api(c *app.Ctx, nextRoute string) error {
 
 func auth(c *app.Ctx, nextRoute string) error {
 	logger.Infof("nextRoute: %v\n", nextRoute)
-
 	return nil
 }

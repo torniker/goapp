@@ -13,8 +13,8 @@ func UserInsert(pg *sqlx.DB, udb schema.User) error {
 			(id,
 			username,
 			password,
-			firstname,
-			lastname,
+			firs_tname,
+			last_name,
 			created_at)
 		VALUES
 			(:id,
@@ -33,7 +33,7 @@ func UserInsert(pg *sqlx.DB, udb schema.User) error {
 // UserByUsername gets user with provided username from postgres
 func UserByUsername(pg *sqlx.DB, username string) (*schema.User, error) {
 	var udbs []schema.User
-	err := pg.Select(&udbs, "SELECT * FROM users WHERE username=$1", username)
+	err := pg.Select(&udbs, "SELECT id, username, password, created_at FROM users WHERE username=$1", username)
 	if err != nil {
 		return nil, err
 	}
@@ -46,7 +46,7 @@ func UserByUsername(pg *sqlx.DB, username string) (*schema.User, error) {
 // UserByID gets user with provided id from postgres
 func UserByID(pg *sqlx.DB, id uuid.UUID) (*schema.User, error) {
 	var udbs []schema.User
-	err := pg.Select(&udbs, "SELECT * FROM users WHERE id=$1", id)
+	err := pg.Select(&udbs, "SELECT id, username, password, created_at FROM users WHERE id=$1", id)
 	if err != nil {
 		return nil, err
 	}

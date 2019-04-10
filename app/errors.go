@@ -58,12 +58,21 @@ func (ctx *Ctx) Error(err error) {
 }
 
 // NotFound response 404
-func (ctx *Ctx) NotFound() {
+func (ctx *Ctx) NotFound() error {
 	e := ErrorStatusNotFound{
 		Code:    4,
 		Message: "not found",
 	}
-	ctx.Error(e)
+	return e
+}
+
+// InternalError response 404
+func (ctx *Ctx) InternalError() error {
+	e := ErrorInternalServerError{
+		Code:    5,
+		Message: "internal server error",
+	}
+	return e
 }
 
 // ErrorBadRequest type for bad request
@@ -83,7 +92,7 @@ type ErrorStatusUnauthorized struct {
 }
 
 func (e ErrorStatusUnauthorized) Error() string {
-	return "unauthorized"
+	return e.Message
 }
 
 // ErrorStatusNotAllowed type for not allowed
@@ -93,7 +102,7 @@ type ErrorStatusNotAllowed struct {
 }
 
 func (e ErrorStatusNotAllowed) Error() string {
-	return "not allowed"
+	return e.Message
 }
 
 // ErrorStatusNotFound type for not found
@@ -103,7 +112,7 @@ type ErrorStatusNotFound struct {
 }
 
 func (e ErrorStatusNotFound) Error() string {
-	return "not found"
+	return e.Message
 }
 
 // ErrorInternalServerError type for internal server error

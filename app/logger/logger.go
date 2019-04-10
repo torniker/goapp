@@ -99,7 +99,7 @@ func Caller() string {
 		if foundMono {
 			pathSegs = append(pathSegs, s)
 		}
-		if s == "mydocge" {
+		if s == "src" {
 			foundMono = true
 		}
 	}

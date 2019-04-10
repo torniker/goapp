@@ -48,11 +48,8 @@ func (ctx *Ctx) Next(f HandlerFunc) {
 }
 
 // JSON responses with json body
-func (ctx *Ctx) JSON(body interface{}) {
+func (ctx *Ctx) JSON(body interface{}) error {
 	ctx.hasResponded = true
 	ctx.response.Header().Set("Content-Type", "application/json")
-	err := json.NewEncoder(ctx.response).Encode(body)
-	if err != nil {
-		panic(err)
-	}
+	return json.NewEncoder(ctx.response).Encode(body)
 }

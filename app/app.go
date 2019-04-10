@@ -56,6 +56,18 @@ func (a *App) Start(address string) error {
 	return a.Server.ListenAndServe()
 }
 
+// StartTLS starts web server with https support
+func (a *App) StartTLS(address, securedAddr string) error {
+	a.Server.Addr = securedAddr
+	a.Server.Handler = a
+	a.Server.ReadTimeout = 5 * time.Second
+	a.Server.WriteTimeout = 10 * time.Second
+	go http.ListenAndServe(address, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		http.Redirect(w, r, "https://localhost"+securedAddr+r.RequestURI, http.StatusMovedPermanently)
+	}))
+	return a.Server.ListenAndServeTLS("certs/server.crt", "certs/server.key")
+}
+
 // NewCtx returns pointer to Ctx
 func (a *App) NewCtx() *Ctx {
 	return &Ctx{

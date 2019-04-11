@@ -7,11 +7,12 @@ import (
 	"github.com/joho/godotenv"
 	"github.com/torniker/goapp/app"
 	"github.com/torniker/goapp/app/logger"
+	"github.com/torniker/goapp/db"
 	"github.com/torniker/goapp/web"
 )
 
 type config struct {
-	Environment      app.Environment
+	Environment      string
 	PostgresAddr     string
 	PostgresDB       string
 	PostgresUser     string
@@ -27,7 +28,7 @@ func main() {
 		return
 	}
 	cfg := config{
-		Environment:      app.Environment(os.Getenv("ENV")),
+		Environment:      os.Getenv("ENV"),
 		PostgresAddr:     os.Getenv("POSTGRES_ADDRESS"),
 		PostgresDB:       os.Getenv("POSTGRES_DB"),
 		PostgresUser:     os.Getenv("POSTGRES_USER"),
@@ -35,7 +36,7 @@ func main() {
 	}
 	a.Env = cfg.Environment
 	addr := fmt.Sprintf("postgres://%s:%s@%s/%s?sslmode=disable", cfg.PostgresUser, cfg.PostgresPassword, cfg.PostgresAddr, cfg.PostgresDB)
-	err = a.InitPG(addr)
+	err = db.New(addr)
 	if err != nil {
 		logger.Error(err)
 		return

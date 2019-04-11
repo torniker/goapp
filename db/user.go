@@ -2,13 +2,12 @@ package db
 
 import (
 	"github.com/gofrs/uuid"
-	"github.com/jmoiron/sqlx"
 	"github.com/torniker/goapp/schema"
 )
 
 // UserInsert inserts user
-func UserInsert(pg *sqlx.DB, udb schema.User) error {
-	_, err := pg.NamedExec(`
+func UserInsert(udb schema.User) error {
+	_, err := db().NamedExec(`
 		INSERT INTO users
 			(id,
 			username,
@@ -27,9 +26,9 @@ func UserInsert(pg *sqlx.DB, udb schema.User) error {
 }
 
 // UserByUsername gets user with provided username from postgres
-func UserByUsername(pg *sqlx.DB, username string) (*schema.User, error) {
+func UserByUsername(username string) (*schema.User, error) {
 	var udbs []schema.User
-	err := pg.Select(&udbs, "SELECT id, username, password, created_at FROM users WHERE username=$1", username)
+	err := db().Select(&udbs, "SELECT id, username, password, created_at FROM users WHERE username=$1", username)
 	if err != nil {
 		return nil, err
 	}
@@ -40,9 +39,9 @@ func UserByUsername(pg *sqlx.DB, username string) (*schema.User, error) {
 }
 
 // UserByID gets user with provided id from postgres
-func UserByID(pg *sqlx.DB, id uuid.UUID) (*schema.User, error) {
+func UserByID(id uuid.UUID) (*schema.User, error) {
 	var udbs []schema.User
-	err := pg.Select(&udbs, "SELECT id, username, password, created_at FROM users WHERE id=$1", id)
+	err := db().Select(&udbs, "SELECT id, username, password, created_at FROM users WHERE id=$1", id)
 	if err != nil {
 		return nil, err
 	}

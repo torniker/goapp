@@ -33,7 +33,7 @@ func handleByID(c *app.Ctx, nextRoute string) error {
 		logger.Warn(err)
 		return c.NotFound()
 	}
-	user, err := db.UserByID(c.App.PG(), userID)
+	user, err := db.UserByID(userID)
 	if err != nil {
 		logger.Error(err)
 		return c.InternalError()
@@ -68,7 +68,7 @@ func handleInsert(c *app.Ctx, nextRoute string) error {
 		Password:  uir.Password,
 		CreatedAt: time.Now(),
 	}
-	err = db.UserInsert(c.App.PG(), userDB)
+	err = db.UserInsert(userDB)
 	if err != nil {
 		return err
 	}

@@ -5,42 +5,44 @@ import (
 	"strings"
 	"time"
 
-	"github.com/go-redis/redis"
-	"github.com/jmoiron/sqlx"
-	"github.com/lib/pq"
-	"github.com/olivere/elastic"
 	"github.com/torniker/goapp/app/logger"
 	"github.com/torniker/goapp/app/request"
 	"github.com/torniker/goapp/app/response"
 )
 
-type Environment string
-
+// Appliication environments
 const (
-	Production  Environment = "Production"
-	Testing     Environment = "Testing"
-	Development Environment = "Development"
+	Production  string = "Production"
+	Testing     string = "Testing"
+	Development string = "Development"
 )
 
 // App contains application data
 type App struct {
+	Env            string
 	Server         *http.Server
+	Store          map[string]interface{}
 	DefaultHandler HandlerFunc
-
-	Env      Environment
-	postgres *sqlx.DB
-	elastic  *elastic.Client
-	redis    *redis.Client
 }
+
+var a App
 
 // New creates App instance and sets default handler function
 func New() *App {
-	return &App{
+	a = App{
+		Env:    Development,
 		Server: new(http.Server),
+		Store:  make(map[string]interface{}),
 		DefaultHandler: func(c *Ctx, nextRoute string) error {
 			return c.NotFound()
 		},
 	}
+	return &a
+}
+
+// Instance returns latest created instance of app
+func Instance() *App {
+	return &a
 }
 
 func defaultHandler(c *Ctx, nextRoute string) error {
@@ -126,24 +128,24 @@ func (a *App) IsProduction() bool {
 // 	return a.redis
 // }
 
-func (a *App) InitPG(addr string) error {
-	_ = pq.Efatal
-	db, err := sqlx.Connect("postgres", addr)
-	if err != nil {
-		return err
-	}
-	err = db.Ping()
-	if err != nil {
-		return err
-	}
-	a.postgres = db
-	return nil
-}
+// func (a *App) InitPG(addr string) error {
+// 	_ = pq.Efatal
+// 	db, err := sqlx.Connect("postgres", addr)
+// 	if err != nil {
+// 		return err
+// 	}
+// 	err = db.Ping()
+// 	if err != nil {
+// 		return err
+// 	}
+// 	a.postgres = db
+// 	return nil
+// }
 
-// PG returns postgres db object
-func (a *App) PG() *sqlx.DB {
-	return a.postgres
-}
+// // PG returns postgres db object
+// func (a *App) PG() *sqlx.DB {
+// 	return a.postgres
+// }
 
 // func (a *App) initES(cfg Config) error {
 // 	fmt.Println(cfg.ESAddress)

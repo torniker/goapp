@@ -21,7 +21,6 @@ func UserInsert(udb schema.User) error {
 	if err != nil {
 		return err
 	}
-
 	return nil
 }
 

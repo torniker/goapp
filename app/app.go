@@ -1,7 +1,11 @@
 package app
 
 import (
+	"bufio"
+	"fmt"
 	"net/http"
+	"net/url"
+	"os"
 	"strings"
 	"time"
 
@@ -33,7 +37,7 @@ func New() *App {
 		Env:    Development,
 		Server: new(http.Server),
 		Store:  make(map[string]interface{}),
-		DefaultHandler: func(c *Ctx, nextRoute string) error {
+		DefaultHandler: func(c *Ctx) error {
 			return c.NotFound()
 		},
 	}
@@ -45,12 +49,8 @@ func Instance() *App {
 	return &a
 }
 
-func defaultHandler(c *Ctx, nextRoute string) error {
-	return c.NotFound()
-}
-
-// Start starts web server
-func (a *App) Start(address string) error {
+// StartHTTP starts web server
+func (a *App) StartHTTP(address string) error {
 	a.Server.Addr = address
 	a.Server.Handler = a
 	a.Server.ReadTimeout = 5 * time.Second
@@ -71,25 +71,75 @@ func (a *App) StartTLS(address, securedAddr string) error {
 }
 
 // NewCtx returns pointer to Ctx
-func (a *App) NewCtx() *Ctx {
+func (a *App) NewCtx(req request.Request, resp response.Response) *Ctx {
 	return &Ctx{
-		App: a,
+		App:      a,
+		Request:  req,
+		Response: resp,
+		CurrentPath: &path{
+			path:     req.Path(),
+			segments: strings.Split(req.Path(), "/"),
+			index:    0,
+		},
 	}
 }
 
 func (a *App) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	ctx := a.NewCtx()
-	ctx.request = request.NewHTTP(r)
-	ctx.response = response.NewHTTP(w)
-	ctx.path = &path{
-		path:     r.URL.Path,
-		segments: strings.Split(r.URL.Path, "/"),
-		index:    0,
-	}
-	logger.Infof("---> method: %v, path: %v, query: %v", r.Method, r.URL.Path, r.URL.Query())
-	err := a.DefaultHandler(ctx, ctx.path.Next())
+	ctx := a.NewCtx(request.NewHTTP(r), response.NewHTTP(w))
+	logger.Infof("---> method: %v, path: %v, query: %v", ctx.Method(), ctx.Request.Path(), ctx.Request.Query())
+	err := a.DefaultHandler(ctx)
 	if err != nil {
 		ctx.Error(err)
+	}
+}
+
+// StartCLI starts cli server
+func (a *App) StartCLI() error {
+	buf := bufio.NewReadWriter(bufio.NewReader(os.Stdin), bufio.NewWriter(os.Stdout))
+	fmt.Println("--------------------------------------------------------")
+	fmt.Println("Please provide command in following format:")
+	fmt.Println("--> post command/path?flag1=foo&flag2=bar {\"input\":\"data\"}")
+	fmt.Println("--------------------------------------------------------")
+	return a.ListenCLI(buf)
+}
+
+// ListenCLI listens to buffer input
+func (a *App) ListenCLI(buf *bufio.ReadWriter) error {
+	for {
+		fmt.Print("--> ")
+		commandBytes, err := buf.ReadBytes('\n')
+		if err != nil {
+			return err
+		}
+		command := string(commandBytes)
+		if strings.ToLower(strings.TrimSpace(command)) == "exit" {
+			return nil
+		}
+		parts := strings.SplitN(command, " ", 3)
+		var method, p, input string
+		if len(parts) == 2 {
+			method = "get"
+			p = "http://app.cli/" + strings.TrimSpace(parts[0])
+			input = parts[1]
+		} else if len(parts) == 3 {
+			method = parts[0]
+			p = "http://app.cli/" + strings.TrimSpace(parts[1])
+			input = parts[2]
+		} else {
+			fmt.Println("could not understand query")
+			continue
+		}
+		u, err := url.Parse(p)
+		if err != nil {
+			fmt.Println(err)
+			continue
+		}
+		ctx := a.NewCtx(request.NewCLI(method, u, input), response.NewCLI())
+		logger.Infof("---> method: %v, path: %v, query: %v", ctx.Method(), ctx.Request.Path(), ctx.Request.Query())
+		err = a.DefaultHandler(ctx)
+		if err != nil {
+			ctx.Error(err)
+		}
 	}
 }
 

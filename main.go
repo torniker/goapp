@@ -8,7 +8,7 @@ import (
 	"github.com/torniker/goapp/app"
 	"github.com/torniker/goapp/app/logger"
 	"github.com/torniker/goapp/db"
-	"github.com/torniker/goapp/web"
+	"github.com/torniker/goapp/routes"
 )
 
 type config struct {
@@ -20,8 +20,6 @@ type config struct {
 }
 
 func main() {
-	a := app.New()
-	a.DefaultHandler = web.Handler
 	err := godotenv.Load()
 	if err != nil {
 		logger.Error("Error loading .env file")
@@ -34,13 +32,18 @@ func main() {
 		PostgresUser:     os.Getenv("POSTGRES_USER"),
 		PostgresPassword: os.Getenv("POSTGRES_PASSWORD"),
 	}
-	a.Env = cfg.Environment
-	addr := fmt.Sprintf("postgres://%s:%s@%s/%s?sslmode=disable", cfg.PostgresUser, cfg.PostgresPassword, cfg.PostgresAddr, cfg.PostgresDB)
-	err = db.New(addr)
+	a := app.New()
+	err = setup(a, cfg)
 	if err != nil {
 		logger.Error(err)
-		return
 	}
+	a.StartHTTP(":8989")
+	// a.StartCLI()
+}
 
-	a.Start(":8989")
+func setup(a *app.App, cfg config) error {
+	a.DefaultHandler = routes.Handler
+	a.Env = cfg.Environment
+	addr := fmt.Sprintf("postgres://%s:%s@%s/%s?sslmode=disable", cfg.PostgresUser, cfg.PostgresPassword, cfg.PostgresAddr, cfg.PostgresDB)
+	return db.New(addr)
 }

@@ -15,48 +15,48 @@ func (ctx *Ctx) Error(err error) {
 	var body ResponseErr
 	switch err.(type) {
 	case ErrorBadRequest:
-		ctx.response.SetStatus(http.StatusBadRequest)
+		ctx.Response.SetStatus(http.StatusBadRequest)
 		e := err.(ErrorBadRequest)
 		body = ResponseErr{
 			Code:    e.Code,
 			Message: e.Message,
 		}
 	case ErrorStatusUnauthorized:
-		ctx.response.SetStatus(http.StatusUnauthorized)
+		ctx.Response.SetStatus(http.StatusUnauthorized)
 		e := err.(ErrorStatusUnauthorized)
 		body = ResponseErr{
 			Code:    e.Code,
 			Message: e.Message,
 		}
 	case ErrorStatusNotAllowed:
-		ctx.response.SetStatus(http.StatusMethodNotAllowed)
+		ctx.Response.SetStatus(http.StatusMethodNotAllowed)
 		e := err.(ErrorStatusNotAllowed)
 		body = ResponseErr{
 			Code:    e.Code,
 			Message: e.Message,
 		}
 	case ErrorStatusNotFound:
-		ctx.response.SetStatus(http.StatusNotFound)
+		ctx.Response.SetStatus(http.StatusNotFound)
 		e := err.(ErrorStatusNotFound)
 		body = ResponseErr{
 			Code:    e.Code,
 			Message: e.Message,
 		}
 	case ErrorInternalServerError:
-		ctx.response.SetStatus(http.StatusInternalServerError)
+		ctx.Response.SetStatus(http.StatusInternalServerError)
 		e := err.(ErrorInternalServerError)
 		body = ResponseErr{
 			Code:    e.Code,
 			Message: e.Message,
 		}
 	default:
-		ctx.response.SetStatus(http.StatusInternalServerError)
+		ctx.Response.SetStatus(http.StatusInternalServerError)
 		body = ResponseErr{
 			Code:    99,
 			Message: err.Error(),
 		}
 	}
-	ctx.response.Write(body)
+	ctx.Response.Write(body)
 }
 
 // NotFound response 404

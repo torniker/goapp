@@ -2,16 +2,20 @@ package user
 
 import (
 	"encoding/json"
+	"net/url"
 	"time"
 
 	"github.com/gofrs/uuid"
 	"github.com/torniker/goapp/app"
 	"github.com/torniker/goapp/app/logger"
+	"github.com/torniker/goapp/app/request"
+	"github.com/torniker/goapp/app/response"
 	"github.com/torniker/goapp/db"
+	"github.com/torniker/goapp/model"
 	"github.com/torniker/goapp/schema"
 )
 
-func Handler(c *app.Ctx, nextRoute string) error {
+func Handler(c *app.Ctx) error {
 	// if request method is POST call handleInsert
 	c.POST(handleInsert)
 	// if request method is GET call handleByID
@@ -23,12 +27,12 @@ func Handler(c *app.Ctx, nextRoute string) error {
 	return nil
 }
 
-func handleElse(c *app.Ctx, nextRoute string) error {
+func handleElse(c *app.Ctx) error {
 	return c.JSON([]string{})
 }
 
-func handleByID(c *app.Ctx, nextRoute string) error {
-	userID, err := uuid.FromString(nextRoute)
+func handleByID(c *app.Ctx) error {
+	userID, err := uuid.FromString(c.CurrentPath.Next())
 	if err != nil {
 		logger.Warn(err)
 		return c.NotFound()
@@ -49,8 +53,8 @@ type userInsertRequest struct {
 	Password string `json:"password"`
 }
 
-func handleInsert(c *app.Ctx, nextRoute string) error {
-	decoder := json.NewDecoder(c.RequestBody())
+func handleInsert(c *app.Ctx) error {
+	decoder := json.NewDecoder(c.Request.Input())
 	var uir userInsertRequest
 	err := decoder.Decode(&uir)
 	if err != nil {
@@ -72,5 +76,16 @@ func handleInsert(c *app.Ctx, nextRoute string) error {
 	if err != nil {
 		return err
 	}
-	return c.JSON(userDB.Model())
+	a := c.App
+	u, err := url.Parse("/api/user/" + id.String())
+	if err != nil {
+		return err
+	}
+	subCtx := a.NewCtx(request.NewSub("GET", u, ""), response.NewSub())
+	err = a.DefaultHandler(subCtx)
+	if err != nil {
+		return err
+	}
+	user := subCtx.Response.Output().(model.User)
+	return c.JSON(user)
 }

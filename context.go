@@ -1,8 +1,8 @@
 package app
 
 import (
-	"github.com/torniker/goapp/app/request"
-	"github.com/torniker/goapp/app/response"
+	"github.com/torniker/goapp/request"
+	"github.com/torniker/goapp/response"
 )
 
 // HandlerFunc defines handler function

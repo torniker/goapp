@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/torniker/goapp/app/logger"
+	"github.com/torniker/goapp/logger"
 )
 
 // NewHTTP create an instance of HTTP responder

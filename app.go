@@ -9,9 +9,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/torniker/goapp/app/logger"
-	"github.com/torniker/goapp/app/request"
-	"github.com/torniker/goapp/app/response"
+	"github.com/torniker/goapp/logger"
+	"github.com/torniker/goapp/request"
+	"github.com/torniker/goapp/response"
 )
 
 // Appliication environments

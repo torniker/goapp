@@ -1,60 +1,51 @@
 package request
 
 import (
-	"bytes"
+	"encoding/json"
 	"io"
-	"io/ioutil"
 	"net/url"
-	"strings"
 )
 
 // NewCLI create an instance of CLI request
-func NewCLI(method string, url *url.URL, input string) *CLI {
+func NewCLI(a Action, url *url.URL, input io.Reader) *CLI {
 	return &CLI{
-		method: method,
-		url:    url,
+		action: a,
+		path:   NewPath(url),
 		input:  input,
+		flags:  make(map[string][]string),
 	}
 }
 
 // CLI is type for CLI requests
 type CLI struct {
-	method string
-	url    *url.URL
-	input  string
+	action Action
+	path   *Path
+	input  io.Reader
+	flags  map[string][]string
 }
 
-// Type returns type of request
-func (c *CLI) Type() int {
-	return TypeCLI
+// Action returns action type
+func (c *CLI) Action() Action {
+	return c.action
 }
 
-// MethodCode returns method
-func (c *CLI) MethodCode() int {
-	switch strings.ToUpper(c.method) {
-	case "GET":
-		return GET
-	case "POST":
-		return POST
-	case "PUT":
-		return PUT
-	case "DELETE":
-		return DELETE
-	}
-	return 0
+// Bind returns request body
+func (c *CLI) Bind(v interface{}) error {
+	decoder := json.NewDecoder(c.input)
+	return decoder.Decode(&v)
 }
 
-// Input returns request body
-func (c *CLI) Input() io.ReadCloser {
-	return ioutil.NopCloser(bytes.NewReader([]byte(c.input)))
+// Flags returns cli flags
+func (c *CLI) Flags() map[string][]string {
+	return c.flags
 }
 
-// Query returns cli flags
-func (c *CLI) Query() map[string][]string {
-	return c.url.Query()
+// SetFlag sets flag
+func (c *CLI) SetFlag(key, val string) {
+	c.flags[key] = []string{val}
 }
 
 // Path returns url path
-func (c *CLI) Path() string {
-	return c.url.Path
+func (c *CLI) Path() *Path {
+	return c.path
 }

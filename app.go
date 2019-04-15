@@ -3,6 +3,7 @@ package app
 import (
 	"bufio"
 	"fmt"
+	"io"
 	"net/http"
 	"net/url"
 	"os"
@@ -76,17 +77,12 @@ func (a *App) NewCtx(req request.Request, resp response.Response) *Ctx {
 		App:      a,
 		Request:  req,
 		Response: resp,
-		CurrentPath: &path{
-			path:     req.Path(),
-			segments: strings.Split(req.Path(), "/"),
-			index:    0,
-		},
 	}
 }
 
 func (a *App) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	ctx := a.NewCtx(request.NewHTTP(r), response.NewHTTP(w))
-	logger.Infof("---> method: %v, path: %v, query: %v", ctx.Method(), ctx.Request.Path(), ctx.Request.Query())
+	logger.Infof("---> method: %v, path: %v, query: %v", ctx.Request.Action().String(), ctx.Request.Path(), ctx.Request.Flags())
 	err := a.DefaultHandler(ctx)
 	if err != nil {
 		ctx.Error(err)
@@ -116,15 +112,21 @@ func (a *App) ListenCLI(buf *bufio.ReadWriter) error {
 			return nil
 		}
 		parts := strings.SplitN(command, " ", 3)
-		var method, p, input string
+		var p string
+		var action request.Action
+		var input io.Reader
 		if len(parts) == 2 {
-			method = "get"
+			action = request.READ
 			p = "http://app.cli/" + strings.TrimSpace(parts[0])
-			input = parts[1]
+			input = strings.NewReader(parts[1])
 		} else if len(parts) == 3 {
-			method = parts[0]
+			action = request.NewActionFromString(parts[0])
+			if !action.IsValid() {
+				fmt.Println("invalid action")
+				continue
+			}
 			p = "http://app.cli/" + strings.TrimSpace(parts[1])
-			input = parts[2]
+			input = strings.NewReader(parts[1])
 		} else {
 			fmt.Println("could not understand query")
 			continue
@@ -134,8 +136,8 @@ func (a *App) ListenCLI(buf *bufio.ReadWriter) error {
 			fmt.Println(err)
 			continue
 		}
-		ctx := a.NewCtx(request.NewCLI(method, u, input), response.NewCLI())
-		logger.Infof("---> method: %v, path: %v, query: %v", ctx.Method(), ctx.Request.Path(), ctx.Request.Query())
+		ctx := a.NewCtx(request.NewCLI(action, u, input), response.NewCLI())
+		logger.Infof("---> action: %v, path: %v, query: %v", ctx.Request.Action().String(), ctx.Request.Path(), ctx.Request.Flags())
 		err = a.DefaultHandler(ctx)
 		if err != nil {
 			ctx.Error(err)
@@ -158,59 +160,82 @@ func (a *App) IsProduction() bool {
 	return a.Env == Production
 }
 
-// func (a *App) initRedis(cfg Config) error {
-// 	client := redis.NewClient(&redis.Options{
-// 		Addr:     cfg.RedisAddr,
-// 		Password: cfg.RedisPassword,
-// 		DB:       0,
-// 	})
-// 	_, err := client.Ping().Result()
-// 	if err != nil {
-// 		logger.Warn(err)
-// 		return err
-// 	}
-// 	a.redis = client
-// 	return nil
-// }
+// Call helps to create new request
+func (a *App) Call() *Requester {
+	return &Requester{
+		app: a,
+		req: &request.Req{},
+	}
+}
 
-// // Redis returns redis connection client
-// func (a *App) Redis() *redis.Client {
-// 	return a.redis
-// }
+// Requester wraps sub requests
+type Requester struct {
+	app *App
+	req *request.Req
+	err error
+}
 
-// func (a *App) InitPG(addr string) error {
-// 	_ = pq.Efatal
-// 	db, err := sqlx.Connect("postgres", addr)
-// 	if err != nil {
-// 		return err
-// 	}
-// 	err = db.Ping()
-// 	if err != nil {
-// 		return err
-// 	}
-// 	a.postgres = db
-// 	return nil
-// }
+// Bind tries to call the request and bind the data from the response
+func (r *Requester) Bind(v interface{}) error {
+	if r.err != nil {
+		return r.err
+	}
+	subCtx := r.app.NewCtx(r.req, response.NewResponse())
+	err := r.app.DefaultHandler(subCtx)
+	if err != nil {
+		return err
+	}
+	v = subCtx.Response.Output()
+	return nil
+}
 
-// // PG returns postgres db object
-// func (a *App) PG() *sqlx.DB {
-// 	return a.postgres
-// }
+// Path sets command name for the request
+func (r *Requester) path(command string) *Requester {
+	u, err := url.Parse(command)
+	if err != nil {
+		r.err = err
+		return r
+	}
+	r.req.SetPath(u)
+	return r
+}
 
-// func (a *App) initES(cfg Config) error {
-// 	fmt.Println(cfg.ESAddress)
-// 	client, err := elastic.NewClient(
-// 		elastic.SetURL(fmt.Sprintf("http://%s", cfg.ESAddress)),
-// 		elastic.SetSniff(false),
-// 	)
-// 	if err != nil {
-// 		return err
-// 	}
-// 	a.elastic = client
-// 	return nil
-// }
+// Flags sets flags for the request
+func (r *Requester) Flags(flags map[string][]string) *Requester {
+	r.req.SetFlags(flags)
+	return r
+}
 
-// // ES returns elastic search object
-// func (a *App) ES() *elastic.Client {
-// 	return a.elastic
-// }
+// Input sets input data for request
+func (r *Requester) Input(v interface{}) *Requester {
+	r.req.SetData(v)
+	return r
+}
+
+// Create command
+func (r *Requester) Create(command string) *Requester {
+	r.req.SetAction(request.CREATE)
+	r.path(command)
+	return r
+}
+
+// Read command
+func (r *Requester) Read(command string) *Requester {
+	r.req.SetAction(request.READ)
+	r.path(command)
+	return r
+}
+
+// Update command
+func (r *Requester) Update(command string) *Requester {
+	r.req.SetAction(request.UPDATE)
+	r.path(command)
+	return r
+}
+
+// Delete command
+func (r *Requester) Delete(command string) *Requester {
+	r.req.SetAction(request.DELETE)
+	r.path(command)
+	return r
+}

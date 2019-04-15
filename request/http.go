@@ -1,58 +1,56 @@
 package request
 
 import (
-	"io"
+	"encoding/json"
 	"net/http"
 )
 
 // NewHTTP create an instance of HTTP request
 func NewHTTP(r *http.Request) *HTTP {
 	return &HTTP{
-		req: r,
+		path: NewPath(r.URL),
+		req:  r,
 	}
 }
 
 // HTTP is type for HTTP requests
 type HTTP struct {
-	req *http.Request
+	path *Path
+	req  *http.Request
 }
 
-// Type returns type of request
-func (h *HTTP) Type() int {
-	return TypeHTTP
-}
-
-// Method returns method
-func (h *HTTP) Method() string {
-	return h.req.Method
-}
-
-// MethodCode returns method
-func (h *HTTP) MethodCode() int {
+// Action returns method
+func (h *HTTP) Action() Action {
 	switch h.req.Method {
 	case "GET":
-		return GET
+		return READ
 	case "POST":
-		return POST
+		return CREATE
 	case "PUT":
-		return PUT
+		return UPDATE
 	case "DELETE":
 		return DELETE
 	}
 	return 0
 }
 
-// Input returns request body
-func (h *HTTP) Input() io.ReadCloser {
-	return h.req.Body
+// Bind build object from input
+func (h *HTTP) Bind(v interface{}) error {
+	decoder := json.NewDecoder(h.req.Body)
+	return decoder.Decode(&v)
 }
 
-// Query returns request Query params
-func (h *HTTP) Query() map[string][]string {
+// Flags returns request Query params
+func (h *HTTP) Flags() map[string][]string {
 	return h.req.URL.Query()
 }
 
+// SetFlag sets flag
+func (h *HTTP) SetFlag(key, val string) {
+	h.req.URL.Query().Set(key, val)
+}
+
 // Path returns request path
-func (h *HTTP) Path() string {
-	return h.req.URL.Path
+func (h *HTTP) Path() *Path {
+	return h.path
 }

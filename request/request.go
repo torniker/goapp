@@ -22,7 +22,6 @@ type Request interface {
 	Action() Action
 	Path() *Path
 	Bind(v interface{}) error
-	SetFlag(key, value string)
 	Flags() map[string][]string
 }
 
@@ -55,7 +54,7 @@ func (a *Action) IsValid() bool {
 
 // NewActionFromString returns action
 func NewActionFromString(a string) Action {
-	switch a {
+	switch strings.ToUpper(a) {
 	case "CREATE":
 		return CREATE
 	case "READ":

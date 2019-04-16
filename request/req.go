@@ -28,12 +28,12 @@ type Req struct {
 }
 
 // Action returns action
-func (r *Req) Action() Action {
+func (r Req) Action() Action {
 	return r.action
 }
 
 // Bind binds request input to pathed object
-func (r *Req) Bind(v interface{}) error {
+func (r Req) Bind(v interface{}) error {
 	logger.Infof("input: %v", r.data)
 	if r.data != nil {
 		v = r.data
@@ -44,17 +44,12 @@ func (r *Req) Bind(v interface{}) error {
 }
 
 // Flags returns optional params
-func (r *Req) Flags() map[string][]string {
+func (r Req) Flags() map[string][]string {
 	return r.flags
 }
 
-// SetFlag sets flag
-func (r *Req) SetFlag(key, val string) {
-	r.flags[key] = []string{val}
-}
-
 // Path returns url path
-func (r *Req) Path() *Path {
+func (r Req) Path() *Path {
 	return r.path
 }
 

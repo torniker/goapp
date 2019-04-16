@@ -25,27 +25,22 @@ type CLI struct {
 }
 
 // Action returns action type
-func (c *CLI) Action() Action {
+func (c CLI) Action() Action {
 	return c.action
 }
 
 // Bind returns request body
-func (c *CLI) Bind(v interface{}) error {
+func (c CLI) Bind(v interface{}) error {
 	decoder := json.NewDecoder(c.input)
 	return decoder.Decode(&v)
 }
 
 // Flags returns cli flags
-func (c *CLI) Flags() map[string][]string {
+func (c CLI) Flags() map[string][]string {
 	return c.flags
 }
 
-// SetFlag sets flag
-func (c *CLI) SetFlag(key, val string) {
-	c.flags[key] = []string{val}
-}
-
 // Path returns url path
-func (c *CLI) Path() *Path {
+func (c CLI) Path() *Path {
 	return c.path
 }

@@ -5,7 +5,7 @@ import (
 	"io"
 	"net/url"
 
-	"github.com/torniker/goapp/logger"
+	"github.com/torniker/wrap/logger"
 )
 
 // NewRequest create an instance of sub request

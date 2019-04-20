@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"os"
 
-	"github.com/torniker/goapp/logger"
+	"github.com/torniker/wrap/logger"
 )
 
 // NewCLI create an instance of cli responder

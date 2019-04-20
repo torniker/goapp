@@ -1,7 +1,7 @@
 package response
 
 import (
-	"github.com/torniker/goapp/logger"
+	"github.com/torniker/wrap/logger"
 )
 
 // NewResponse create an instance of sub responder

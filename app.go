@@ -10,31 +10,31 @@ import (
 	"strings"
 	"time"
 
-	"github.com/torniker/goapp/logger"
-	"github.com/torniker/goapp/request"
-	"github.com/torniker/goapp/response"
+	"github.com/torniker/wrap/logger"
+	"github.com/torniker/wrap/request"
+	"github.com/torniker/wrap/response"
 )
 
-// Appliication environments
+// Progliication environments
 const (
 	Production  string = "Production"
 	Testing     string = "Testing"
 	Development string = "Development"
 )
 
-// App contains application data
-type App struct {
+// Prog contains application data
+type Prog struct {
 	Env            string
 	Server         *http.Server
 	Store          map[string]interface{}
 	DefaultHandler HandlerFunc
 }
 
-var a App
+var p Prog
 
-// New creates App instance and sets default handler function
-func New() *App {
-	a = App{
+// New creates Prog instance and sets default handler function
+func New() *Prog {
+	p = Prog{
 		Env:    Development,
 		Server: new(http.Server),
 		Store:  make(map[string]interface{}),
@@ -42,65 +42,65 @@ func New() *App {
 			return c.NotFound()
 		},
 	}
-	return &a
+	return &p
 }
 
 // Instance returns latest created instance of app
-func Instance() *App {
-	return &a
+func Instance() *Prog {
+	return &p
 }
 
 // StartHTTP starts web server
-func (a *App) StartHTTP(address string) error {
-	a.Server.Addr = address
-	a.Server.Handler = a
-	a.Server.ReadTimeout = 5 * time.Second
-	a.Server.WriteTimeout = 10 * time.Second
-	return a.Server.ListenAndServe()
+func (p *Prog) StartHTTP(address string) error {
+	p.Server.Addr = address
+	p.Server.Handler = p
+	p.Server.ReadTimeout = 5 * time.Second
+	p.Server.WriteTimeout = 10 * time.Second
+	return p.Server.ListenAndServe()
 }
 
 // StartTLS starts web server with https support
-func (a *App) StartTLS(address, securedAddr string) error {
-	a.Server.Addr = securedAddr
-	a.Server.Handler = a
-	a.Server.ReadTimeout = 5 * time.Second
-	a.Server.WriteTimeout = 10 * time.Second
+func (p *Prog) StartTLS(address, securedAddr string) error {
+	p.Server.Addr = securedAddr
+	p.Server.Handler = p
+	p.Server.ReadTimeout = 5 * time.Second
+	p.Server.WriteTimeout = 10 * time.Second
 	go http.ListenAndServe(address, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, "https://localhost"+securedAddr+r.RequestURI, http.StatusMovedPermanently)
 	}))
-	return a.Server.ListenAndServeTLS("certs/server.crt", "certs/server.key")
+	return p.Server.ListenAndServeTLS("certs/server.crt", "certs/server.key")
 }
 
 // NewCtx returns pointer to Ctx
-func (a *App) NewCtx(req request.Request, resp response.Response) *Ctx {
+func (p *Prog) NewCtx(req request.Request, resp response.Response) *Ctx {
 	return &Ctx{
-		App:      a,
+		Prog:     p,
 		Request:  req,
 		Response: resp,
 	}
 }
 
-func (a *App) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	ctx := a.NewCtx(request.NewHTTP(r), response.NewHTTP(w))
+func (p *Prog) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	ctx := p.NewCtx(request.NewHTTP(r), response.NewHTTP(w))
 	logger.Infof("---> method: %v, path: %v, query: %v", ctx.Request.Action().String(), ctx.Request.Path(), ctx.Request.Flags())
-	err := a.DefaultHandler(ctx)
+	err := p.DefaultHandler(ctx)
 	if err != nil {
 		ctx.Error(err)
 	}
 }
 
 // StartCLI starts cli server
-func (a *App) StartCLI() error {
+func (p *Prog) StartCLI() error {
 	buf := bufio.NewReadWriter(bufio.NewReader(os.Stdin), bufio.NewWriter(os.Stdout))
 	fmt.Println("--------------------------------------------------------")
 	fmt.Println("Please provide command in following format:")
 	fmt.Println("--> post command/path?flag1=foo&flag2=bar {\"input\":\"data\"}")
 	fmt.Println("--------------------------------------------------------")
-	return a.ListenCLI(buf)
+	return p.ListenCLI(buf)
 }
 
 // ListenCLI listens to buffer input
-func (a *App) ListenCLI(buf *bufio.ReadWriter) error {
+func (p *Prog) ListenCLI(buf *bufio.ReadWriter) error {
 	for {
 		fmt.Print("--> ")
 		commandBytes, err := buf.ReadBytes('\n')
@@ -112,12 +112,12 @@ func (a *App) ListenCLI(buf *bufio.ReadWriter) error {
 			return nil
 		}
 		parts := strings.SplitN(command, " ", 3)
-		var p string
+		var addr string
 		var action request.Action
 		var input io.Reader
 		if len(parts) == 2 {
 			action = request.READ
-			p = "http://app.cli/" + strings.TrimSpace(parts[0])
+			addr = "http://app.cli/" + strings.TrimSpace(parts[0])
 			input = strings.NewReader(parts[1])
 		} else if len(parts) == 3 {
 			action = request.NewActionFromString(parts[0])
@@ -125,20 +125,20 @@ func (a *App) ListenCLI(buf *bufio.ReadWriter) error {
 				fmt.Println("invalid action")
 				continue
 			}
-			p = "http://app.cli/" + strings.TrimSpace(parts[1])
+			addr = "http://app.cli/" + strings.TrimSpace(parts[1])
 			input = strings.NewReader(parts[1])
 		} else {
 			fmt.Println("could not understand query")
 			continue
 		}
-		u, err := url.Parse(p)
+		u, err := url.Parse(addr)
 		if err != nil {
 			fmt.Println(err)
 			continue
 		}
-		ctx := a.NewCtx(request.NewCLI(action, u, input), response.NewCLI())
+		ctx := p.NewCtx(request.NewCLI(action, u, input), response.NewCLI())
 		logger.Infof("---> action: %v, path: %v, query: %v", ctx.Request.Action().String(), ctx.Request.Path(), ctx.Request.Flags())
-		err = a.DefaultHandler(ctx)
+		err = p.DefaultHandler(ctx)
 		if err != nil {
 			ctx.Error(err)
 		}
@@ -146,33 +146,33 @@ func (a *App) ListenCLI(buf *bufio.ReadWriter) error {
 }
 
 // IsDevelopment is true if the env is development
-func (a *App) IsDevelopment() bool {
-	return a.Env == Development
+func (p *Prog) IsDevelopment() bool {
+	return p.Env == Development
 }
 
 // IsTesting is true if the env is testing
-func (a *App) IsTesting() bool {
-	return a.Env == Testing
+func (p *Prog) IsTesting() bool {
+	return p.Env == Testing
 }
 
 // IsProduction is true if the env is production
-func (a *App) IsProduction() bool {
-	return a.Env == Production
+func (p *Prog) IsProduction() bool {
+	return p.Env == Production
 }
 
 // Call helps to create new request
-func (a *App) Call() *Requester {
+func (p *Prog) Call() *Requester {
 	return &Requester{
-		app: a,
-		req: &request.Req{},
+		prog: p,
+		req:  &request.Req{},
 	}
 }
 
 // Requester wraps sub requests
 type Requester struct {
-	app *App
-	req *request.Req
-	err error
+	prog *Prog
+	req  *request.Req
+	err  error
 }
 
 // Bind tries to call the request and bind the data from the response
@@ -180,8 +180,8 @@ func (r *Requester) Bind(v interface{}) error {
 	if r.err != nil {
 		return r.err
 	}
-	subCtx := r.app.NewCtx(r.req, response.NewResponse())
-	err := r.app.DefaultHandler(subCtx)
+	subCtx := r.prog.NewCtx(r.req, response.NewResponse())
+	err := r.prog.DefaultHandler(subCtx)
 	if err != nil {
 		return err
 	}

@@ -1,8 +1,8 @@
 package app
 
 import (
-	"github.com/torniker/goapp/request"
-	"github.com/torniker/goapp/response"
+	"github.com/torniker/wrap/request"
+	"github.com/torniker/wrap/response"
 )
 
 // HandlerFunc defines handler function
@@ -10,7 +10,7 @@ type HandlerFunc func(*Ctx) error
 
 // Ctx is struct where information for each request is stored
 type Ctx struct {
-	App      *App
+	Prog     *Prog
 	Request  request.Request
 	Response response.Response
 }

@@ -1,4 +1,4 @@
-package app
+package wrap
 
 import (
 	"github.com/torniker/wrap/request"

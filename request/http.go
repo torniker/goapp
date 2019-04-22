@@ -23,11 +23,11 @@ type HTTP struct {
 func (h HTTP) Action() Action {
 	switch h.req.Method {
 	case "GET":
-		return READ
+		return GET
 	case "POST":
-		return CREATE
+		return POST
 	case "PUT":
-		return UPDATE
+		return PUT
 	case "DELETE":
 		return DELETE
 	}

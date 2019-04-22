@@ -116,7 +116,7 @@ func (p *Prog) ListenCLI(buf *bufio.ReadWriter) error {
 		var action request.Action
 		var input io.Reader
 		if len(parts) == 2 {
-			action = request.READ
+			action = request.GET
 			addr = "http://app.cli/" + strings.TrimSpace(parts[0])
 			input = strings.NewReader(parts[1])
 		} else if len(parts) == 3 {
@@ -214,21 +214,21 @@ func (r *Requester) Input(v interface{}) *Requester {
 
 // Create command
 func (r *Requester) Create(command string) *Requester {
-	r.req.SetAction(request.CREATE)
+	r.req.SetAction(request.POST)
 	r.path(command)
 	return r
 }
 
 // Read command
 func (r *Requester) Read(command string) *Requester {
-	r.req.SetAction(request.READ)
+	r.req.SetAction(request.GET)
 	r.path(command)
 	return r
 }
 
 // Update command
 func (r *Requester) Update(command string) *Requester {
-	r.req.SetAction(request.UPDATE)
+	r.req.SetAction(request.PUT)
 	r.path(command)
 	return r
 }

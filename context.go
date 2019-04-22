@@ -13,25 +13,27 @@ type Ctx struct {
 	Prog     *Prog
 	Request  request.Request
 	Response response.Response
+	Store    map[string]interface{}
+	User     Userer
 }
 
-// Create handles checks if the request method and calls HandlerFunc
-func (ctx *Ctx) Create(f HandlerFunc) {
-	if ctx.Request.Action() == request.CREATE {
+// Post handles checks if the request method and calls HandlerFunc
+func (ctx *Ctx) Post(f HandlerFunc) {
+	if ctx.Request.Action() == request.POST {
 		ctx.call(f)
 	}
 }
 
-// Read handles checks if the request method and calls HandlerFunc
-func (ctx *Ctx) Read(f HandlerFunc) {
-	if ctx.Request.Action() == request.READ {
+// Get handles checks if the request method and calls HandlerFunc
+func (ctx *Ctx) Get(f HandlerFunc) {
+	if ctx.Request.Action() == request.GET {
 		ctx.call(f)
 	}
 }
 
-// Update handles checks if the request method and calls HandlerFunc
-func (ctx *Ctx) Update(f HandlerFunc) {
-	if ctx.Request.Action() == request.UPDATE {
+// Put handles checks if the request method and calls HandlerFunc
+func (ctx *Ctx) Put(f HandlerFunc) {
+	if ctx.Request.Action() == request.PUT {
 		ctx.call(f)
 	}
 }

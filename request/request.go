@@ -8,9 +8,9 @@ import (
 
 // list of request actions
 const (
-	CREATE Action = 1 + iota
-	READ
-	UPDATE
+	POST Action = 1 + iota
+	GET
+	PUT
 	DELETE
 )
 
@@ -55,12 +55,12 @@ func (a *Action) IsValid() bool {
 // NewActionFromString returns action
 func NewActionFromString(a string) Action {
 	switch strings.ToUpper(a) {
-	case "CREATE":
-		return CREATE
-	case "READ":
-		return READ
-	case "UPDATE":
-		return UPDATE
+	case "POST":
+		return POST
+	case "GET":
+		return GET
+	case "PUT":
+		return PUT
 	case "DELETE":
 		return DELETE
 	}
@@ -70,12 +70,12 @@ func NewActionFromString(a string) Action {
 // string returns string name of action
 func (a Action) String() string {
 	switch a {
-	case CREATE:
+	case POST:
 		return "CREATE"
-	case READ:
-		return "READ"
-	case UPDATE:
-		return "UPDATE"
+	case GET:
+		return "GET"
+	case PUT:
+		return "PUT"
 	case DELETE:
 		return "DELETE"
 	}
@@ -89,6 +89,11 @@ func NewPath(url *url.URL) *Path {
 		segments: strings.Split(url.Path, "/"),
 		index:    0,
 	}
+}
+
+// URL returns url
+func (p *Path) URL() *url.URL {
+	return p.url
 }
 
 // Next returns next segment of the path

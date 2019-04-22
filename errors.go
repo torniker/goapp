@@ -1,95 +1,110 @@
 package wrap
 
 import (
+	"fmt"
 	"net/http"
-)
 
-// ResponseErr describes error response
-type ResponseErr struct {
-	Code    int    `json:"code"`
-	Message string `json:"message"`
-}
+	"github.com/torniker/wrap/logger"
+)
 
 // Error checks error type and responses accordingly
 func (ctx *Ctx) Error(err error) {
-	var body ResponseErr
 	switch err.(type) {
 	case ErrorBadRequest:
 		ctx.Response.SetStatus(http.StatusBadRequest)
 		e := err.(ErrorBadRequest)
-		body = ResponseErr{
-			Code:    e.Code,
-			Message: e.Message,
-		}
+		ctx.Response.Write(e)
 	case ErrorStatusUnauthorized:
 		ctx.Response.SetStatus(http.StatusUnauthorized)
 		e := err.(ErrorStatusUnauthorized)
-		body = ResponseErr{
-			Code:    e.Code,
-			Message: e.Message,
-		}
+		ctx.Response.Write(e)
 	case ErrorStatusNotAllowed:
 		ctx.Response.SetStatus(http.StatusMethodNotAllowed)
 		e := err.(ErrorStatusNotAllowed)
-		body = ResponseErr{
-			Code:    e.Code,
-			Message: e.Message,
-		}
+		ctx.Response.Write(e)
 	case ErrorStatusNotFound:
 		ctx.Response.SetStatus(http.StatusNotFound)
 		e := err.(ErrorStatusNotFound)
-		body = ResponseErr{
-			Code:    e.Code,
-			Message: e.Message,
-		}
+		ctx.Response.Write(e)
 	case ErrorInternalServerError:
 		ctx.Response.SetStatus(http.StatusInternalServerError)
 		e := err.(ErrorInternalServerError)
-		body = ResponseErr{
-			Code:    e.Code,
-			Message: e.Message,
-		}
+		ctx.Response.Write(e)
+	case ErrorUnprocessableEntity:
+		ctx.Response.SetStatus(http.StatusUnprocessableEntity)
+		e := err.(ErrorUnprocessableEntity)
+		ctx.Response.Write(e)
 	default:
 		ctx.Response.SetStatus(http.StatusInternalServerError)
-		body = ResponseErr{
-			Code:    99,
-			Message: err.Error(),
-		}
+		ctx.Response.Write(ErrorInternalServerError{Message: err.Error()})
 	}
-	ctx.Response.Write(body)
 }
 
 // NotFound response 404
 func (ctx *Ctx) NotFound() error {
 	e := ErrorStatusNotFound{
-		Code:    4,
-		Message: "not found",
+		Message:  "not found",
+		Internal: fmt.Sprintf("url: %v not found", ctx.Request.Path().URL().Path),
 	}
+	logger.Error(e.Internal)
 	return e
 }
 
 // Unauthorized response 401
 func (ctx *Ctx) Unauthorized() error {
 	e := ErrorStatusUnauthorized{
-		Code:    1,
-		Message: "unauthorizes",
+		Message:  "unauthorized",
+		Internal: fmt.Sprintf("user: %v is unauthorized to request: %v", ctx.User, ctx.Request.Path().URL().Path),
 	}
+	logger.Error(e.Internal)
 	return e
 }
 
 // InternalError response 404
-func (ctx *Ctx) InternalError() error {
+func (ctx *Ctx) InternalError(err error) error {
 	e := ErrorInternalServerError{
-		Code:    5,
-		Message: "internal server error",
+		Message:  "internal server error",
+		Internal: err.Error(),
 	}
+	logger.Error(e.Internal)
+	return e
+}
+
+// BadRequest response 404
+func (ctx *Ctx) BadRequest() error {
+	e := ErrorInternalServerError{
+		Message:  "bad request",
+		Internal: fmt.Sprintf("bad request: %#v", ctx.Request),
+	}
+	logger.Error(e.Internal)
+	return e
+}
+
+// NotAllowed response 404
+func (ctx *Ctx) NotAllowed() error {
+	e := ErrorInternalServerError{
+		Message:  "not allowed",
+		Internal: fmt.Sprintf("user: %v is not allowed to request: %v", ctx.User, ctx.Request.Path().URL().Path),
+	}
+	logger.Error(e.Internal)
+	return e
+}
+
+// UnprocessableEntity respnse 422
+func (ctx *Ctx) UnprocessableEntity(code int, message string) error {
+	e := ErrorUnprocessableEntity{
+		Code:     code,
+		Message:  message,
+		Internal: fmt.Sprintf("UnprocessableEntity code: %v, message: %v ", code, message),
+	}
+	logger.Error(e.Internal)
 	return e
 }
 
 // ErrorBadRequest type for bad request
 type ErrorBadRequest struct {
-	Code    int
-	Message string
+	Message  string `json:"message"`
+	Internal string `json:"-"`
 }
 
 func (e ErrorBadRequest) Error() string {
@@ -98,8 +113,8 @@ func (e ErrorBadRequest) Error() string {
 
 // ErrorStatusUnauthorized type for Unauthorized
 type ErrorStatusUnauthorized struct {
-	Code    int
-	Message string
+	Message  string `json:"message"`
+	Internal string `json:"-"`
 }
 
 func (e ErrorStatusUnauthorized) Error() string {
@@ -108,8 +123,8 @@ func (e ErrorStatusUnauthorized) Error() string {
 
 // ErrorStatusNotAllowed type for not allowed
 type ErrorStatusNotAllowed struct {
-	Code    int
-	Message string
+	Message  string `json:"message"`
+	Internal string `json:"-"`
 }
 
 func (e ErrorStatusNotAllowed) Error() string {
@@ -118,8 +133,8 @@ func (e ErrorStatusNotAllowed) Error() string {
 
 // ErrorStatusNotFound type for not found
 type ErrorStatusNotFound struct {
-	Code    int
-	Message string
+	Message  string `json:"message"`
+	Internal string `json:"-"`
 }
 
 func (e ErrorStatusNotFound) Error() string {
@@ -128,10 +143,21 @@ func (e ErrorStatusNotFound) Error() string {
 
 // ErrorInternalServerError type for internal server error
 type ErrorInternalServerError struct {
-	Code    int
-	Message string
+	Message  string `json:"message"`
+	Internal string `json:"-"`
 }
 
 func (e ErrorInternalServerError) Error() string {
+	return e.Message
+}
+
+// ErrorUnprocessableEntity type for validation errors
+type ErrorUnprocessableEntity struct {
+	Code     int    `json:"code"`
+	Message  string `json:"message"`
+	Internal string `json:"-"`
+}
+
+func (e ErrorUnprocessableEntity) Error() string {
 	return e.Message
 }

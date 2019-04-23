@@ -70,11 +70,11 @@ func (ctx *Ctx) InternalError(err error) error {
 	return e
 }
 
-// BadRequest response 404
-func (ctx *Ctx) BadRequest() error {
+// BadRequest response 400
+func (ctx *Ctx) BadRequest(message string) error {
 	e := ErrorInternalServerError{
-		Message:  "bad request",
-		Internal: fmt.Sprintf("bad request: %#v", ctx.Request),
+		Message:  message,
+		Internal: fmt.Sprintf("bad request: %#v, message: %v", ctx.Request, message),
 	}
 	logger.Error(e.Internal)
 	return e

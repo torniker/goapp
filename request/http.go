@@ -45,6 +45,7 @@ func (h HTTP) Bind(v interface{}) error {
 // Flags returns request Query params
 func (h HTTP) Flags() map[string][]string {
 	flags := h.req.URL.Query()
+	// TODO: handle conflicts
 	for key, val := range h.req.Header {
 		flags[key] = val
 	}

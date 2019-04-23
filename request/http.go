@@ -30,6 +30,8 @@ func (h HTTP) Action() Action {
 		return PUT
 	case "DELETE":
 		return DELETE
+	case "OPTIONS":
+		return OPTIONS
 	}
 	return 0
 }

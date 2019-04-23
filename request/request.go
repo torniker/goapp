@@ -12,6 +12,7 @@ const (
 	GET
 	PUT
 	DELETE
+	OPTIONS
 )
 
 // Action type for describing request action

@@ -42,12 +42,11 @@ func (h HTTP) Bind(v interface{}) error {
 
 // Flags returns request Query params
 func (h HTTP) Flags() map[string][]string {
-	return h.req.URL.Query()
-}
-
-// Headers returns request Headers
-func (h HTTP) Header() map[string][]string {
-	return h.req.Header
+	flags := h.req.URL.Query()
+	for key, val := range h.req.Header {
+		flags[key] = val
+	}
+	return flags
 }
 
 // Path returns request path

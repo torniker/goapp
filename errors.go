@@ -14,13 +14,13 @@ func (ctx *Ctx) Error(err error) {
 		ctx.Response.SetStatus(http.StatusBadRequest)
 		e := err.(ErrorBadRequest)
 		ctx.Response.Write(e)
-	case ErrorStatusUnauthorized:
+	case ErrorUnauthorized:
 		ctx.Response.SetStatus(http.StatusUnauthorized)
-		e := err.(ErrorStatusUnauthorized)
+		e := err.(ErrorUnauthorized)
 		ctx.Response.Write(e)
-	case ErrorStatusNotAllowed:
+	case ErrorMethodNotAllowed:
 		ctx.Response.SetStatus(http.StatusMethodNotAllowed)
-		e := err.(ErrorStatusNotAllowed)
+		e := err.(ErrorMethodNotAllowed)
 		ctx.Response.Write(e)
 	case ErrorStatusNotFound:
 		ctx.Response.SetStatus(http.StatusNotFound)
@@ -52,7 +52,7 @@ func (ctx *Ctx) NotFound() error {
 
 // Unauthorized response 401
 func (ctx *Ctx) Unauthorized() error {
-	e := ErrorStatusUnauthorized{
+	e := ErrorUnauthorized{
 		Message:  "unauthorized",
 		Internal: fmt.Sprintf("user: %v is unauthorized to request: %v", ctx.User, ctx.Request.Path().URL().Path),
 	}
@@ -60,8 +60,8 @@ func (ctx *Ctx) Unauthorized() error {
 	return e
 }
 
-// InternalError response 404
-func (ctx *Ctx) InternalError(err error) error {
+// InternalServerError response 500
+func (ctx *Ctx) InternalServerError(err error) error {
 	e := ErrorInternalServerError{
 		Message:  "internal server error",
 		Internal: err.Error(),
@@ -72,7 +72,7 @@ func (ctx *Ctx) InternalError(err error) error {
 
 // BadRequest response 400
 func (ctx *Ctx) BadRequest(message string) error {
-	e := ErrorInternalServerError{
+	e := ErrorBadRequest{
 		Message:  message,
 		Internal: fmt.Sprintf("bad request: %#v, message: %v", ctx.Request, message),
 	}
@@ -80,9 +80,9 @@ func (ctx *Ctx) BadRequest(message string) error {
 	return e
 }
 
-// NotAllowed response 404
-func (ctx *Ctx) NotAllowed() error {
-	e := ErrorInternalServerError{
+// MethodNotAllowed response 405
+func (ctx *Ctx) MethodNotAllowed() error {
+	e := ErrorMethodNotAllowed{
 		Message:  "not allowed",
 		Internal: fmt.Sprintf("user: %v is not allowed to request: %v", ctx.User, ctx.Request.Path().URL().Path),
 	}
@@ -111,23 +111,23 @@ func (e ErrorBadRequest) Error() string {
 	return e.Message
 }
 
-// ErrorStatusUnauthorized type for Unauthorized
-type ErrorStatusUnauthorized struct {
+// ErrorUnauthorized type for Unauthorized
+type ErrorUnauthorized struct {
 	Message  string `json:"message"`
 	Internal string `json:"-"`
 }
 
-func (e ErrorStatusUnauthorized) Error() string {
+func (e ErrorUnauthorized) Error() string {
 	return e.Message
 }
 
-// ErrorStatusNotAllowed type for not allowed
-type ErrorStatusNotAllowed struct {
+// ErrorMethodNotAllowed type for not allowed
+type ErrorMethodNotAllowed struct {
 	Message  string `json:"message"`
 	Internal string `json:"-"`
 }
 
-func (e ErrorStatusNotAllowed) Error() string {
+func (e ErrorMethodNotAllowed) Error() string {
 	return e.Message
 }
 

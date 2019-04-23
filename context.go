@@ -61,10 +61,15 @@ func (ctx *Ctx) Next(f HandlerFunc) {
 	ctx.call(f)
 }
 
+// ResJSON is a struct for wrapping a JSON data response
+type ResJSON struct {
+	Data interface{} `json:"data"`
+}
+
 // JSON responses with json body
 func (ctx *Ctx) JSON(body interface{}) error {
 	ctx.Response.SetHeader("Content-Type", "application/json")
-	return ctx.Response.Write(body)
+	return ctx.Response.Write(ResJSON{Data: body})
 }
 
 // IsGET handles checks if the request method is GET

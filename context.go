@@ -66,3 +66,43 @@ func (ctx *Ctx) JSON(body interface{}) error {
 	ctx.Response.SetHeader("Content-Type", "application/json")
 	return ctx.Response.Write(body)
 }
+
+// IsGET handles checks if the request method is GET
+func (ctx *Ctx) IsGET() bool {
+	if ctx.Request.Action() == request.GET {
+		return true
+	}
+	return false
+}
+
+// IsPOST handles checks if the request method is POST
+func (ctx *Ctx) IsPOST() bool {
+	if ctx.Request.Action() == request.POST {
+		return true
+	}
+	return false
+}
+
+// IsPUT handles checks if the request method is PUT
+func (ctx *Ctx) IsPUT() bool {
+	if ctx.Request.Action() == request.PUT {
+		return true
+	}
+	return false
+}
+
+// IsDELETE handles checks if the request method is DELETE
+func (ctx *Ctx) IsDELETE() bool {
+	if ctx.Request.Action() == request.DELETE {
+		return true
+	}
+	return false
+}
+
+// IsOPTIONS handles checks if the request method is OPTIONS
+func (ctx *Ctx) IsOPTIONS() bool {
+	if ctx.Request.Action() == request.OPTIONS {
+		return true
+	}
+	return false
+}

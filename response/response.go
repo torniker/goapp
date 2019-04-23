@@ -14,4 +14,5 @@ type Response interface {
 	Commited() bool
 	Write(interface{}) error
 	Output() interface{}
+	EnableCORS(origin, methods, headers string)
 }

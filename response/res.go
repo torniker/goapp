@@ -55,3 +55,10 @@ func (r *Res) Write(body interface{}) error {
 func (r *Res) Output() interface{} {
 	return r.output
 }
+
+// EnableCORS sets corresponsing headers to enable CORS
+func (r *Res) EnableCORS(origin, methods, headers string) {
+	r.SetHeader("Access-Control-Allow-Origin", origin)
+	r.SetHeader("Access-Control-Allow-Methods", methods)
+	r.SetHeader("Access-Control-Allow-Headers", headers)
+}

@@ -58,3 +58,10 @@ func (c *CLI) Write(body interface{}) error {
 func (c *CLI) Output() interface{} {
 	return c.output
 }
+
+// EnableCORS sets corresponsing headers to enable CORS
+func (c *CLI) EnableCORS(origin, methods, headers string) {
+	c.SetHeader("Access-Control-Allow-Origin", origin)
+	c.SetHeader("Access-Control-Allow-Methods", methods)
+	c.SetHeader("Access-Control-Allow-Headers", headers)
+}

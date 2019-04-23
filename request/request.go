@@ -23,6 +23,7 @@ type Request interface {
 	Path() *Path
 	Bind(v interface{}) error
 	Flags() map[string][]string
+	Header() map[string][]string
 }
 
 // Path defines structure for command path

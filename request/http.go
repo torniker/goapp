@@ -45,6 +45,11 @@ func (h HTTP) Flags() map[string][]string {
 	return h.req.URL.Query()
 }
 
+// Headers returns request Headers
+func (h HTTP) Header() map[string][]string {
+	return h.req.Header
+}
+
 // Path returns request path
 func (h HTTP) Path() *Path {
 	return h.path

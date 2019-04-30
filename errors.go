@@ -83,7 +83,7 @@ func (ctx *Ctx) BadRequest(message string) error {
 // MethodNotAllowed response 405
 func (ctx *Ctx) MethodNotAllowed() error {
 	e := ErrorMethodNotAllowed{
-		Message:  "not allowed",
+		Message:  "method not allowed",
 		Internal: fmt.Sprintf("user: %v is not allowed to request: %v", ctx.User, ctx.Request.Path().URL().Path),
 	}
 	logger.Error(e.Internal)

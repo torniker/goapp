@@ -13,6 +13,7 @@ type Response interface {
 	SetHeader(key, val string)
 	Commited() bool
 	Write(interface{}) error
+	SuccessWithNoContent()
 	Output() interface{}
 	EnableCORS(origin, methods, headers string)
 }

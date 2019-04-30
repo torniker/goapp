@@ -72,6 +72,11 @@ func (ctx *Ctx) JSON(body interface{}) error {
 	return ctx.Response.Write(ResJSON{Data: body})
 }
 
+// NoContent responses with status 204 No Content
+func (ctx *Ctx) NoContent() {
+	ctx.Response.SuccessWithNoContent()
+}
+
 // IsGET handles checks if the request method is GET
 func (ctx *Ctx) IsGET() bool {
 	if ctx.Request.Action() == request.GET {

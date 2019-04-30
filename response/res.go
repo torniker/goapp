@@ -51,6 +51,12 @@ func (r *Res) Write(body interface{}) error {
 	// return json.NewEncoder(os.Stdout).Encode(body)
 }
 
+// SuccessWithNoContent commits and sets http status to 204 No Content
+func (r *Res) SuccessWithNoContent() {
+	r.SetStatus(204)
+	r.committed = true
+}
+
 // Output returns response output
 func (r *Res) Output() interface{} {
 	return r.output

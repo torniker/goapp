@@ -54,6 +54,12 @@ func (c *CLI) Write(body interface{}) error {
 	return json.NewEncoder(os.Stdout).Encode(body)
 }
 
+// SuccessWithNoContent commits and sets http status to 204 No Content
+func (c *CLI) SuccessWithNoContent() {
+	c.SetStatus(204)
+	c.committed = true
+}
+
 // Output returns response output
 func (c *CLI) Output() interface{} {
 	return c.output

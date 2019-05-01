@@ -91,11 +91,10 @@ func (ctx *Ctx) MethodNotAllowed() error {
 }
 
 // UnprocessableEntity respnse 422
-func (ctx *Ctx) UnprocessableEntity(code int, errors []FieldError) error {
+func (ctx *Ctx) UnprocessableEntity(errors FieldErrors) error {
 	e := ErrorUnprocessableEntity{
-		Code:     code,
 		Errors:   errors,
-		Internal: fmt.Sprintf("UnprocessableEntity code: %v, message: %v ", code, errors),
+		Internal: fmt.Sprintf("UnprocessableEntity errors: %v ", errors.String()),
 	}
 	logger.Error(e.Internal)
 	return e
@@ -157,17 +156,23 @@ type FieldError struct {
 	Message string `json:"message"`
 }
 
+// FieldErrors describes a list of errors per field
+type FieldErrors []FieldError
+
+func (fes FieldErrors) String() string {
+	var errStr string
+	for _, fe := range fes {
+		errStr += fmt.Sprintf("Field: %v, Message: %v\n", fe.Field, fe.Message)
+	}
+	return errStr
+}
+
 // ErrorUnprocessableEntity type for validation errors
 type ErrorUnprocessableEntity struct {
-	Code     int          `json:"code"`
-	Errors   []FieldError `json:"errors"`
-	Internal string       `json:"-"`
+	Errors   FieldErrors `json:"errors"`
+	Internal string      `json:"-"`
 }
 
 func (e ErrorUnprocessableEntity) Error() string {
-	var errStr string
-	for _, fe := range e.Errors {
-		errStr += fmt.Sprintf("field: %v, message: %v\n", fe.Field, fe.Message)
-	}
-	return errStr
+	return e.Errors.String()
 }

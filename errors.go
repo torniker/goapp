@@ -91,11 +91,11 @@ func (ctx *Ctx) MethodNotAllowed() error {
 }
 
 // UnprocessableEntity respnse 422
-func (ctx *Ctx) UnprocessableEntity(code int, message string) error {
+func (ctx *Ctx) UnprocessableEntity(code int, errors []FieldError) error {
 	e := ErrorUnprocessableEntity{
 		Code:     code,
-		Message:  message,
-		Internal: fmt.Sprintf("UnprocessableEntity code: %v, message: %v ", code, message),
+		Errors:   errors,
+		Internal: fmt.Sprintf("UnprocessableEntity code: %v, message: %v ", code, errors),
 	}
 	logger.Error(e.Internal)
 	return e
@@ -151,13 +151,23 @@ func (e ErrorInternalServerError) Error() string {
 	return e.Message
 }
 
+// FieldError describes error per field
+type FieldError struct {
+	Field   string `json:"field"`
+	Message string `json:"message"`
+}
+
 // ErrorUnprocessableEntity type for validation errors
 type ErrorUnprocessableEntity struct {
-	Code     int    `json:"code"`
-	Message  string `json:"message"`
-	Internal string `json:"-"`
+	Code     int          `json:"code"`
+	Errors   []FieldError `json:"errors"`
+	Internal string       `json:"-"`
 }
 
 func (e ErrorUnprocessableEntity) Error() string {
-	return e.Message
+	var errStr string
+	for _, fe := range e.Errors {
+		errStr += fmt.Sprintf("field: %v, message: %v\n", fe.Field, fe.Message)
+	}
+	return errStr
 }

@@ -3,6 +3,7 @@ package wrap
 import (
 	"fmt"
 	"net/http"
+	"strings"
 
 	"github.com/torniker/wrap/logger"
 )
@@ -152,8 +153,8 @@ func (e ErrorInternalServerError) Error() string {
 
 // FieldError describes error per field
 type FieldError struct {
-	Field   *string `json:"field"`
-	Message string  `json:"message"`
+	Path    []string `json:"path"`
+	Message string   `json:"message"`
 }
 
 // FieldErrors describes a list of errors per field
@@ -162,10 +163,10 @@ type FieldErrors []FieldError
 func (fes FieldErrors) String() string {
 	var errStr string
 	for _, fe := range fes {
-		if fe.Field == nil {
+		if len(fe.Path) == 0 {
 			errStr += fmt.Sprintf("Field: GENERAL, Message: %v\n", fe.Message)
 		} else {
-			errStr += fmt.Sprintf("Field: %v, Message: %v\n", *fe.Field, fe.Message)
+			errStr += fmt.Sprintf("Field: %v, Message: %v\n", strings.Join(fe.Path, "."), fe.Message)
 		}
 	}
 	return errStr
